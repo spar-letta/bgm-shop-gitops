@@ -1,0 +1,32 @@
+# External access for first bring-up (HTTP). Prefer Ingress + HTTPS later.
+apiVersion: v1
+kind: Service
+metadata:
+  name: bgm-shop-be-lb
+  namespace: bgm-shop
+  labels:
+    app: bgm-shop-be
+spec:
+  type: LoadBalancer
+  selector:
+    app: bgm-shop-be
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: bgm-shop-fe-lb
+  namespace: bgm-shop
+  labels:
+    app: bgm-shop-fe
+spec:
+  type: LoadBalancer
+  selector:
+    app: bgm-shop-fe
+  ports:
+    - name: http
+      port: 80
+      targetPort: http

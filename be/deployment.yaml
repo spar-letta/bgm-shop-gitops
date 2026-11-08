@@ -1,0 +1,80 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bgm-shop-be
+  namespace: bgm-shop
+  labels:
+    app: bgm-shop-be
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: bgm-shop-be
+  template:
+    metadata:
+      labels:
+        app: bgm-shop-be
+    spec:
+      containers:
+        - name: be
+          image: europe-west1-docker.pkg.dev/bgm-shop/bgm-shop/be:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+              name: http
+          envFrom:
+            - secretRef:
+                name: bgm-shop-be-secrets
+          env:
+            - name: SERVER_PORT
+              value: "8080"
+            - name: SECURITY_JWT_KEY_STORE_PATH
+              value: file:/keys/keystore.jks
+          volumeMounts:
+            - name: keystore
+              mountPath: /keys
+              readOnly: true
+            - name: gcp-creds
+              mountPath: /config
+              readOnly: true
+          readinessProbe:
+            tcpSocket:
+              port: http
+            initialDelaySeconds: 60
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket:
+              port: http
+            initialDelaySeconds: 120
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: "1"
+              memory: 1536Mi
+      volumes:
+        - name: keystore
+          secret:
+            secretName: bgm-shop-be-keystore
+        - name: gcp-creds
+          secret:
+            secretName: bgm-shop-be-gcp-creds
+            optional: true
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: bgm-shop-be
+  namespace: bgm-shop
+  labels:
+    app: bgm-shop-be
+spec:
+  type: ClusterIP
+  selector:
+    app: bgm-shop-be
+  ports:
+    - name: http
+      port: 80
+      targetPort: http

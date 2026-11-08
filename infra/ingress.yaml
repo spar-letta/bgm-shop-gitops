@@ -1,0 +1,16 @@
+# Optional single-IP HTTP ingress.
+# FE must be built with API_URL pointing at the BE LoadBalancer / API host
+# (e.g. http://BE_EXTERNAL_IP) until path-based API proxying is added to nginx.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: bgm-shop
+  namespace: bgm-shop
+  annotations:
+    kubernetes.k8s.io/ingress.class: gce
+spec:
+  defaultBackend:
+    service:
+      name: bgm-shop-fe
+      port:
+        number: 80

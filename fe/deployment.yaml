@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bgm-shop-fe
+  namespace: bgm-shop
+  labels:
+    app: bgm-shop-fe
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: bgm-shop-fe
+  template:
+    metadata:
+      labels:
+        app: bgm-shop-fe
+    spec:
+      containers:
+        - name: fe
+          image: europe-west1-docker.pkg.dev/bgm-shop/bgm-shop/fe:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 80
+              name: http
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: bgm-shop-fe
+  namespace: bgm-shop
+  labels:
+    app: bgm-shop-fe
+spec:
+  type: ClusterIP
+  selector:
+    app: bgm-shop-fe
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
